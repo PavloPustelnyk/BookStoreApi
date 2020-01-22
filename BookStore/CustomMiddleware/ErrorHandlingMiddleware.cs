@@ -42,7 +42,8 @@ namespace BookStore.WebAPI.CustomMiddleware
             var result = JsonConvert.SerializeObject(new
             {
                 statusCode = (int)HttpStatusCode.InternalServerError,
-                message = title + exception.Message
+                message = title + exception.Message,
+                stacktrace = exception.StackTrace
             });
 
             return context.Response.WriteAsync(result);
