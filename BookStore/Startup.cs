@@ -53,8 +53,6 @@ namespace BookStore.WebAPI
             services.ConfigureSwagger();
 
             services.ConfigureMapping();
-
-            services.
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -68,7 +66,7 @@ namespace BookStore.WebAPI
 
                 app.UseSwaggerUI(options =>
                 {
-                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore API V1");
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore API v1");
                 });
             }
 
