@@ -8,6 +8,6 @@ namespace BookStore.Infrastructure.Services.Interfaces
 {
     public interface IBookService : ICrudService<Book>
     {
-        Task AddBookReview(BookReview review);
+        Task<int> GetBookLikesCountAsync(int id);
     }
 }
