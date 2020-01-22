@@ -23,6 +23,7 @@ namespace BookStore.WebAPI
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<IBookService, BookService>();
+            services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IBookCategoryService, BookCategoryService>();
             services.AddTransient<IBookReviewService, BookReviewService>();
         }
@@ -98,11 +99,6 @@ namespace BookStore.WebAPI
             var mappingConfig = new MapperConfiguration(mc => mc.AddProfile(new MappingProfile()));
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
-        }
-
-        public static void ConfigureLogging(this IServiceCollection services)
-        {
-            
         }
     }
 }
