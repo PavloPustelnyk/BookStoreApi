@@ -7,6 +7,8 @@ using BookStore.Domain.Constants;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Services.Interfaces;
 using BookStore.WebAPI.ViewModels;
+using BookStore.WebAPI.ViewModels.DetailedViewModels;
+using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,27 +36,25 @@ namespace BookStore.WebAPI.Controllers
         // GET: api/Author
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<AuthorViewModel>>> GetAuthors()
+        public async Task<ActionResult<IEnumerable<AuthorDetailedViewModel>>> GetAuthors()
         {
-            var authors = await authorService.GetAllAsync();
-            return Ok(mapper.Map<IEnumerable<AuthorViewModel>>(authors));
+            var authors = await authorService.GetAll().Include(a => a.Books).ToListAsync();
+            return Ok(mapper.Map<IEnumerable<AuthorDetailedViewModel>>(authors));
         }
 
         // GET: api/Author/5
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult<AuthorViewModel>> GetAuthor(int id)
+        public async Task<ActionResult<AuthorDetailedViewModel>> GetAuthor(int id)
         {
-            var author = await authorService.GetByIdAsync(id);
+            var author = await authorService.GetAuthorWithBooks(id);
 
             if (author == null)
             {
-                logger.LogInformation($"Non-existing author id: '{id}'.");
-
                 return NotFound();
             }
 
-            return mapper.Map<AuthorViewModel>(author);
+            return Ok(mapper.Map<AuthorDetailedViewModel>(author));
         }
 
         // GET: api/Authors/5/Books
@@ -62,12 +62,10 @@ namespace BookStore.WebAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAuthorBooks(int id)
         {
-            var author = await authorService.GetAll().Where(a => a.Id == id).Include(a => a.Books).FirstOrDefaultAsync();
+            var author = await authorService.GetAuthorWithBooks(id);
 
             if (author == null)
             {
-                logger.LogInformation($"Non-existing author id: '{id}'.");
-
                 return NotFound();
             }
 
@@ -80,8 +78,6 @@ namespace BookStore.WebAPI.Controllers
         {
             if (id != authorViewModel.Id)
             {
-                logger.LogInformation($"Wrong specified author id: '{id}'.");
-
                 return BadRequest();
             }
 
@@ -95,8 +91,6 @@ namespace BookStore.WebAPI.Controllers
             {
                 if (!AuthorExists(id))
                 {
-                    logger.LogInformation($"Non-existing author id: '{id}'.");
-
                     return NotFound();
                 }
                 else
@@ -110,30 +104,28 @@ namespace BookStore.WebAPI.Controllers
 
         // POST: api/Author
         [HttpPost]
-        public async Task<ActionResult<AuthorViewModel>> PostAuthor([FromBody] AuthorViewModel authorViewModel)
+        public async Task<ActionResult<AuthorDetailedViewModel>> PostAuthor([FromBody] AuthorViewModel authorViewModel)
         {
             var author = mapper.Map<Author>(authorViewModel);
 
             await authorService.CreateAsync(author);
 
-            return Ok(mapper.Map<AuthorViewModel>(author));
+            return Ok(mapper.Map<AuthorDetailedViewModel>(author));
         }
 
         // DELETE: api/Author/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<AuthorViewModel>> DeleteAuthor(int id)
+        public async Task<ActionResult<AuthorDetailedViewModel>> DeleteAuthor(int id)
         {
             var author = await authorService.GetByIdAsync(id);
             if (author == null)
             {
-                logger.LogInformation($"Non-existing author id: '{id}'.");
-
                 return NotFound();
             }
 
             await authorService.DeleteAsync(author);
 
-            return mapper.Map<AuthorViewModel>(author);
+            return mapper.Map<AuthorDetailedViewModel>(author);
         }
 
         private bool AuthorExists(int id)

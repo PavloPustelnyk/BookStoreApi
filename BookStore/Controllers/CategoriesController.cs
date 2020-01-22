@@ -6,6 +6,7 @@ using AutoMapper;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Services.Interfaces;
 using BookStore.WebAPI.ViewModels;
+using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -50,8 +51,6 @@ namespace BookStore.WebAPI.Controllers
 
             if (category == null)
             {
-                logger.LogInformation($"Non-existing category id: '{id}'.");
-
                 return NotFound();
             }
 
@@ -83,8 +82,6 @@ namespace BookStore.WebAPI.Controllers
         {
             if (id != categoryViewModel.Id)
             {
-                logger.LogInformation($"Wrong category id: '{id}'.");
-
                 return BadRequest();
             }
 
@@ -98,8 +95,6 @@ namespace BookStore.WebAPI.Controllers
             {
                 if (!CategoryExists(id))
                 {
-                    logger.LogInformation($"Non-existing author id: '{id}'.");
-
                     return NotFound();
                 }
                 else
@@ -119,7 +114,7 @@ namespace BookStore.WebAPI.Controllers
 
             await categoryService.CreateAsync(category);
 
-            return Ok(mapper.Map<AuthorViewModel>(category));
+            return Ok(mapper.Map<CategoryViewModel>(category));
         }
 
         // DELETE: api/Categories/5
@@ -129,8 +124,6 @@ namespace BookStore.WebAPI.Controllers
             var category = await categoryService.GetByIdAsync(id);
             if (category == null)
             {
-                logger.LogInformation($"Non-existing author id: '{id}'.");
-
                 return NotFound();
             }
 

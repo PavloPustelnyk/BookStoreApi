@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Authorization;
 using BookStore.Domain.Constants;
 using BookStore.WebAPI.Constants;
 using Microsoft.Extensions.Logging;
+using BookStore.WebAPI.ViewModels.DetailedViewModels;
+using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 
 namespace BookStore.WebAPI.Controllers
 {
@@ -41,7 +43,7 @@ namespace BookStore.WebAPI.Controllers
         // GET: api/Books
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<BookViewModel>>> GetBooks()
+        public async Task<ActionResult<IEnumerable<BookDetailedViewModel>>> GetBooks()
         {
             var books = await bookService.GetAll()
                                          .Include(b => b.Author)
@@ -49,7 +51,7 @@ namespace BookStore.WebAPI.Controllers
                                          .Include(b => b.LikedBy)
                                          .ToListAsync();
 
-            return Ok(mapper.Map<IEnumerable<BookViewModel>>(books));
+            return Ok(mapper.Map<IEnumerable<BookDetailedViewModel>>(books));
         }
 
         // GET: api/Books/page/5
@@ -67,39 +69,35 @@ namespace BookStore.WebAPI.Controllers
 
             if (books == null)
             {
-                logger.LogInformation($"No books for specified page: {pageNo}.");
-
                 return NotFound();
             }
 
-            return Ok(mapper.Map<ICollection<BookViewModel>>(books));
+            return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(books));
         }
 
         // GET: api/Books/5
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult<BookViewModel>> GetBook(int id)
+        public async Task<ActionResult<BookDetailedViewModel>> GetBook(int id)
         {
             var book = await bookService.GetAll()
                                         .Where(b => b.Id == id)
                                         .Include(b => b.Author)
                                         .Include(b => b.Reviews)
-                                        .Include(b => b.LikedBy)
                                         .FirstOrDefaultAsync();
 
             if (book == null)
             {
-                logger.LogInformation($"Non-existing book id: '{id}'.");
-
                 return NotFound();
             }
 
-            var bookViewModel = mapper.Map<BookViewModel>(book);
+            var bookViewModel = mapper.Map<BookDetailedViewModel>(book);
             var categories = await categoryService.GetAll()
                                                   .Where(c => c.BookId == id)
                                                   .Include(c => c.Category)
                                                   .Select(c => c.Category)
                                                   .ToListAsync();
+            var bookLikesCount = bookService.GetBookLikesCountAsync(id);
 
             bookViewModel.Categories = mapper.Map<ICollection<CategoryViewModel>>(categories);
 
@@ -119,8 +117,6 @@ namespace BookStore.WebAPI.Controllers
 
             if (categories == null || categories.Count == 0)
             {
-                logger.LogInformation($"No categories for specified book: id = '{id}'.");
-
                 return NotFound();
             }
 
@@ -133,8 +129,6 @@ namespace BookStore.WebAPI.Controllers
         {
             if (id != bookViewModel.Id)
             {
-                logger.LogInformation($"Wrong book id: '{id}'.");
-
                 return BadRequest();
             }
 
@@ -148,8 +142,6 @@ namespace BookStore.WebAPI.Controllers
             {
                 if (!BookExists(id))
                 {
-                    logger.LogInformation($"Non-existing book id: '{id}'.");
-
                     return NotFound();
                 }
                 else
@@ -163,31 +155,31 @@ namespace BookStore.WebAPI.Controllers
 
         // POST: api/Books
         [HttpPost]
-        public async Task<ActionResult<BookViewModel>> PostBook([FromBody] BookViewModel bookViewModel)
+        public async Task<ActionResult<BookDetailedViewModel>> PostBook([FromBody] BookViewModel bookViewModel)
         {
             var book = mapper.Map<Book>(bookViewModel);
 
             await bookService.CreateAsync(book);
 
-            return CreatedAtRoute(nameof(GetBook), new { id = book.Id }, mapper.Map<BookViewModel>(book));
+            return Ok(mapper.Map<BookDetailedViewModel>(book));
         }
 
         // DELETE: api/Books/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<BookViewModel>> DeleteBook(int id)
+        public async Task<ActionResult<BookDetailedViewModel>> DeleteBook(int id)
         {
             var book = await bookService.GetByIdAsync(id);
             if (book == null)
             {
-                logger.LogInformation($"Non-existing book id: '{id}'.");
-
                 return NotFound();
             }
 
             await bookService.DeleteAsync(book);
 
-            return mapper.Map<BookViewModel>(book);
+            return mapper.Map<BookDetailedViewModel>(book);
         }
+
+
 
         private bool BookExists(int id)
         {
