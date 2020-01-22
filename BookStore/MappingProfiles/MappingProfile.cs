@@ -2,6 +2,8 @@
 using BookStore.Domain.Entities;
 using BookStore.WebAPI.Converters;
 using BookStore.WebAPI.ViewModels;
+using BookStore.WebAPI.ViewModels.DetailedViewModels;
+using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -15,26 +17,29 @@ namespace BookStore.WebAPI.MappingProfiles
     {
         public MappingProfile()
         {
+            CreateMap<IFormFile, byte[]>().ConvertUsing(new FormFileToByteArrayConverter());
+            CreateMap<byte[], IFormFile>().ConvertUsing(new ByteArrayToFormFileConverter());
+
             CreateMap<UserRegisterViewModel, User>();
-            CreateMap<User, UserRegisterViewModel>();
+
+            CreateMap<User, UserDetailedViewModel>();
 
             CreateMap<BookViewModel, Book>();
+            CreateMap<Book, BookDetailedViewModel>();
             CreateMap<Book, BookViewModel>();
+
+            CreateMap<AuthorViewModel, Author>();
+            CreateMap<Author, AuthorDetailedViewModel>();
+            CreateMap<Author, AuthorViewModel>();
 
             CreateMap<CategoryViewModel, Category>();
             CreateMap<Category, CategoryViewModel>();
-
-            CreateMap<AuthorViewModel, Author>();
-            CreateMap<Author, AuthorViewModel>();
 
             CreateMap<BookReviewViewModel, BookReview>();
             CreateMap<BookReview, BookReviewViewModel>();
 
             CreateMap<FavoriteBookViewModel, FavoriteBook>();
             CreateMap<FavoriteBook, FavoriteBookViewModel>();
-
-            CreateMap<IFormFile, byte[]>().ConvertUsing(new FormFileToByteArrayConverter());
-            CreateMap<byte[], IFormFile>().ConvertUsing(new ByteArrayToFormFileConverter());
         }
     }
 }
