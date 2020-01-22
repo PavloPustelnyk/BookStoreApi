@@ -6,6 +6,8 @@ using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Helpers;
 using BookStore.Infrastructure.Services.Interfaces;
 using BookStore.WebAPI.ViewModels;
+using BookStore.WebAPI.ViewModels.DetailedViewModels;
+using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,15 +43,14 @@ namespace BookStore.WebAPI.Controllers
 
             await userService.CreateAsync(user);
 
-            user.Password = string.Empty;
+            logger.LogInformation($"Registered new user. Id: {user.Id}");
 
-            return Ok(mapper.Map<UserRegisterViewModel>(user));
-
+            return Ok(mapper.Map<UserDetailedViewModel>(user));
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> LoginUserAsync([FromBody] UserLoginViewModel userLoginViewModel)
+        public async Task<IActionResult> LoginUserAsync([FromBody] UserLogintViewModel userLoginViewModel)
         {
             var user = await userService.GetUserByCredentialsAsync(userLoginViewModel.Email, userLoginViewModel.Password);
 
@@ -63,11 +64,11 @@ namespace BookStore.WebAPI.Controllers
 
             var accessToken = await authenticationService.GetAccessTokenAsync(user);
 
-            user.Password = null;
+            logger.LogInformation($"User log in. Id: {user.Id}");
 
             return Ok(new
             {
-                User = mapper.Map<UserRegisterViewModel>(user),
+                User = mapper.Map<UserDetailedViewModel>(user),
                 AccessToken = accessToken
             });
         }
@@ -99,11 +100,9 @@ namespace BookStore.WebAPI.Controllers
 
             var accessToken = await authenticationService.RefreshUserTokenAsync(userId, refreshToken);
 
-            user.Password = null;
-
             return Ok(new
             {
-                User = mapper.Map<UserRegisterViewModel>(user),
+                User = mapper.Map<UserDetailedViewModel>(user),
                 AccessToken = accessToken
             });
         }
