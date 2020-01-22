@@ -10,6 +10,10 @@ namespace BookStore.Infrastructure.Services.Interfaces
     {
         Task<User> GetUserByCredentialsAsync(string email, string password);
 
-        Task AddBookToFavorites(FavoriteBook book);
+        Task AddBookToFavoritesAsync(FavoriteBook book);
+
+        Task DeleteBookFromFavoritesAsync(FavoriteBook book);
+
+        Task<ICollection<FavoriteBook>> GetUserFavoriteBooksAsync(int userId);
     }
 }

@@ -50,9 +50,28 @@ namespace BookStore.Infrastructure.Services
             return Convert.ToBase64String(plainTextBytes);
         }
 
-        public Task AddBookToFavorites(FavoriteBook book)
+        public async Task AddBookToFavoritesAsync(FavoriteBook book)
         {
-            throw new NotImplementedException();
+            await dbContext.Set<FavoriteBook>().AddAsync(book).ConfigureAwait(false);
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+        }
+
+        public async Task DeleteBookFromFavoritesAsync(FavoriteBook book)
+        {
+            var entity = await dbContext.Set<FavoriteBook>()
+                                        .Where(fb => fb.BookId == book.BookId && fb.UserId == book.UserId)
+                                        .FirstOrDefaultAsync();
+
+            if (entity != null)
+            {
+                dbContext.Set<FavoriteBook>().Remove(entity);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task<ICollection<FavoriteBook>> GetUserFavoriteBooksAsync(int userId)
+        {
+            return await dbContext.Set<FavoriteBook>().Where(fb => fb.UserId == userId).Include(fb => fb.Book).ToListAsync();
         }
     }
 }
