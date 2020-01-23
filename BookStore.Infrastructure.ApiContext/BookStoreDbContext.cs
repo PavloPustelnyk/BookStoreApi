@@ -14,7 +14,9 @@ namespace BookStore.Infrastructure.ApiContext
 
         public DbSet<Book> Books { get; set; }
 
-        public DbSet<Category> BookCategories { get; set; }
+        public DbSet<Category> Categories { get; set; }
+
+        public DbSet<BookCategory> BookCategories { get; set; }
 
         public DbSet<BookReview> Reviews { get; set; }
 
