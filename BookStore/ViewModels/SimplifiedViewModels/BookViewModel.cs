@@ -18,7 +18,7 @@ namespace BookStore.WebAPI.ViewModels.SimplifiedViewModels
         [Required]
         public decimal Price { get; set; }
 
-        //public 
+        public int[] CategoriesId { get; set; } 
 
         public IFormFile BookImage { get; set; }
 
