@@ -29,6 +29,11 @@ namespace BookStore.Infrastructure.Services
         {
             var user = await GetAll().Where(u => u.Email == email).FirstOrDefaultAsync();
 
+            if (user == null)
+            {
+                return null;
+            }
+
             return Crypto.VerifyHashedPassword(user.Password, password) ? user : null;
         }
 
