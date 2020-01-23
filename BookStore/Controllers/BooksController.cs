@@ -26,32 +26,18 @@ namespace BookStore.WebAPI.Controllers
     {
         private readonly IBookService bookService;
         private readonly IAuthorService authorService;
-        private readonly IBookCategoryService categoryService;
+        private readonly IBookCategoryService bookCategoryService;
         private readonly IMapper mapper;
         private readonly ILogger<BooksController> logger;
 
-        public BooksController(IBookService bookService, IAuthorService authorService, 
+        public BooksController(IBookService bookService, IAuthorService authorService,
             IBookCategoryService bookCategoryService, IMapper mapper, ILogger<BooksController> logger)
         {
             this.bookService = bookService;
             this.authorService = authorService;
-            this.categoryService = bookCategoryService;
+            this.bookCategoryService = bookCategoryService;
             this.mapper = mapper;
             this.logger = logger;
-        }
-
-        // GET: api/Books
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<BookDetailedViewModel>>> GetBooks()
-        {
-            var books = await bookService.GetAll()
-                                         .Include(b => b.Author)
-                                         .Include(b => b.Reviews)
-                                         .Include(b => b.LikedBy)
-                                         .ToListAsync();
-
-            return Ok(mapper.Map<IEnumerable<BookDetailedViewModel>>(books));
         }
 
         // GET: api/Books/page/5
@@ -59,20 +45,31 @@ namespace BookStore.WebAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetBookPage(int pageNo)
         {
+            if (pageNo < 1)
+            {
+                return BadRequest("Wrong page number.");
+            }
+
             var books = await bookService.GetAll()
-                                         .Skip((pageNo - 1) * ControllersConstants.ItemsOnPageCount)
-                                         .Take(ControllersConstants.ItemsOnPageCount)
-                                         .Include(b => b.Author)
-                                         .Include(b => b.Reviews)
-                                         .Include(b => b.LikedBy)
-                                         .ToListAsync();
+                .Skip((pageNo - 1) * ControllersConstants.ItemsOnPageCount)
+                .Take(ControllersConstants.ItemsOnPageCount)
+                .Include(b => b.Author)
+                .ToListAsync();
 
             if (books == null)
             {
                 return NotFound();
             }
 
-            return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(books));
+            var bookViewModels = mapper.Map<ICollection<BookDetailedViewModel>>(books);
+
+            foreach (var bookViewModel in bookViewModels)
+            {
+                var categories = await bookCategoryService.GetCategoriesAsync(bookViewModel.Id);
+                bookViewModel.Categories = mapper.Map<ICollection<CategoryViewModel>>(categories);
+            }
+
+            return Ok(bookViewModels);
         }
 
         // GET: api/Books/5
@@ -81,10 +78,12 @@ namespace BookStore.WebAPI.Controllers
         public async Task<ActionResult<BookDetailedViewModel>> GetBook(int id)
         {
             var book = await bookService.GetAll()
-                                        .Where(b => b.Id == id)
-                                        .Include(b => b.Author)
-                                        .Include(b => b.Reviews)
-                                        .FirstOrDefaultAsync();
+                .Where(b => b.Id == id)
+                .Include(b => b.Author)
+                .Include(b => b.Reviews)
+                .Include(b => b.BookCategories)
+                .ThenInclude(bc => bc.Category)
+                .FirstOrDefaultAsync();
 
             if (book == null)
             {
@@ -92,16 +91,30 @@ namespace BookStore.WebAPI.Controllers
             }
 
             var bookViewModel = mapper.Map<BookDetailedViewModel>(book);
-            var categories = await categoryService.GetAll()
-                                                  .Where(c => c.BookId == id)
-                                                  .Include(c => c.Category)
-                                                  .Select(c => c.Category)
-                                                  .ToListAsync();
-            var bookLikesCount = bookService.GetBookLikesCountAsync(id);
 
-            bookViewModel.Categories = mapper.Map<ICollection<CategoryViewModel>>(categories);
+            bookViewModel.Categories = mapper.Map<ICollection<CategoryViewModel>>(book.BookCategories
+                .Select(bc => bc.Category)
+                .ToList());
 
             return Ok(bookViewModel);
+        }
+
+        // GET: api/Books/search/str
+        [HttpGet("search/{partialTitle}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetBookByPartialTitle(string partialTitle)
+        {
+            var books = await bookService.GetBooksByPartialTitleAsync(partialTitle);
+
+            var bookViewModels = mapper.Map<ICollection<BookDetailedViewModel>>(books);
+
+            foreach (var bookViewModel in bookViewModels)
+            {
+                var categories = await bookCategoryService.GetCategoriesAsync(bookViewModel.Id);
+                bookViewModel.Categories = mapper.Map<ICollection<CategoryViewModel>>(categories);
+            }
+
+            return Ok(bookViewModels);
         }
 
         // GET: api/Books/5/Categories
@@ -109,13 +122,13 @@ namespace BookStore.WebAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetBookGategories(int id)
         {
-            var categories = await categoryService.GetAll()
-                                                  .Where(c => c.BookId == id)
-                                                  .Include(c => c.Category)
-                                                  .Select(c => c.Category)
-                                                  .ToListAsync();
+            var categories = await bookCategoryService.GetAll()
+                .Where(c => c.BookId == id)
+                .Include(c => c.Category)
+                .Select(c => c.Category)
+                .ToListAsync();
 
-            if (categories == null || categories.Count == 0)
+            if (categories == null)
             {
                 return NotFound();
             }
@@ -132,11 +145,16 @@ namespace BookStore.WebAPI.Controllers
                 return BadRequest();
             }
 
+            if (!BookExists(id))
+            {
+                return NotFound();
+            }
+
             try
             {
                 var book = mapper.Map<Book>(bookViewModel);
 
-                await bookService.UpdateAsync(book);
+                await bookService.UpdateBookWithCategoriesAsync(book, bookViewModel.CategoriesId);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -159,7 +177,7 @@ namespace BookStore.WebAPI.Controllers
         {
             var book = mapper.Map<Book>(bookViewModel);
 
-            await bookService.CreateAsync(book);
+            await bookService.CreateBookWithCategoriesAsync(book, bookViewModel.CategoriesId);
 
             return Ok(mapper.Map<BookDetailedViewModel>(book));
         }
@@ -169,6 +187,7 @@ namespace BookStore.WebAPI.Controllers
         public async Task<ActionResult<BookDetailedViewModel>> DeleteBook(int id)
         {
             var book = await bookService.GetByIdAsync(id);
+
             if (book == null)
             {
                 return NotFound();
