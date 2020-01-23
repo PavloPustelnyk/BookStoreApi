@@ -6,6 +6,7 @@ using AutoMapper;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Services.Interfaces;
 using BookStore.WebAPI.ViewModels;
+using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -60,20 +61,21 @@ namespace BookStore.WebAPI.Controllers
         // GET: api/Categories/5/Books
         [HttpGet("{id}/books")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetCategoryBooks(int id)
+        public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetCategoryBooks(int id)
         {
             var books = await bookCategoryService.GetAll()
-                                                 .Where(bc => bc.CategoryId == id)
-                                                 .Include(bc => bc.Book)
-                                                 .Select(bc => bc.Book)
-                                                 .ToListAsync();
+                .Where(bc => bc.CategoryId == id)
+                .Include(bc => bc.Book)
+                .ThenInclude(b => b.Author)
+                .Select(bc => bc.Book)
+                .ToListAsync();
 
-            if (books == null || books.Count == 0)
+            if (books == null)
             {
                 return NotFound();
             }
 
-            return Ok(books);
+            return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(books));
         }
 
         // PUT: api/Categories/5
@@ -122,6 +124,7 @@ namespace BookStore.WebAPI.Controllers
         public async Task<ActionResult<CategoryViewModel>> DeleteCategory(int id)
         {
             var category = await categoryService.GetByIdAsync(id);
+
             if (category == null)
             {
                 return NotFound();
