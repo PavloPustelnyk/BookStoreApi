@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BookStore.WebAPI.ViewModels.DetailedViewModels
 {
-    public class AuthorDetailedViewModel
+    public class AuthorDetailedViewModel : BaseViewModel
     {
         public string FirstName { get; set; }
 
