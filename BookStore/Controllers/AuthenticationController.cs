@@ -43,7 +43,7 @@ namespace BookStore.WebAPI.Controllers
 
             await userService.CreateAsync(user);
 
-            logger.LogInformation($"Registered new user. Id: {user.Id}");
+            logger.LogInformation($"User register. Id: {user.Id}");
 
             return Ok(mapper.Map<UserDetailedViewModel>(user));
         }
