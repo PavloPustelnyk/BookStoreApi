@@ -6,6 +6,7 @@ using AutoMapper;
 using BookStore.Domain.Constants;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Services.Interfaces;
+using BookStore.WebAPI.Constants;
 using BookStore.WebAPI.ViewModels;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
@@ -33,15 +34,6 @@ namespace BookStore.WebAPI.Controllers
             this.logger = logger;
         }
 
-        // GET: api/Author
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<AuthorDetailedViewModel>>> GetAuthors()
-        {
-            var authors = await authorService.GetAll().Include(a => a.Books).ToListAsync();
-            return Ok(mapper.Map<IEnumerable<AuthorDetailedViewModel>>(authors));
-        }
-
         // GET: api/Author/5
         [HttpGet("{id}")]
         [AllowAnonymous]
@@ -57,10 +49,44 @@ namespace BookStore.WebAPI.Controllers
             return Ok(mapper.Map<AuthorDetailedViewModel>(author));
         }
 
+        // GET: api/Author/search/str
+        [HttpGet("search/{partialName}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ICollection<AuthorDetailedViewModel>>> GetAuthorByPartialName(string partialName)
+        {
+            var authors = await authorService.GetAuthorsByPartialNameAsync(partialName);
+
+            return Ok(mapper.Map<ICollection<AuthorDetailedViewModel>>(authors));
+        }
+
+        // GET: api/Authors/page/5
+        [HttpGet("page/{pageNo}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAuthorsPage(int pageNo)
+        {
+            if (pageNo < 1)
+            {
+                return BadRequest("Wrong page number.");
+            }
+
+            var authors = await authorService.GetAll()
+                .Skip((pageNo - 1) * ControllersConstants.ItemsOnPageCount)
+                .Take(ControllersConstants.ItemsOnPageCount)
+                .Include(a => a.Books)
+                .ToListAsync();
+
+            if (authors == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(mapper.Map<ICollection<AuthorDetailedViewModel>>(authors));
+        }
+
         // GET: api/Authors/5/Books
         [HttpGet("{id}/books")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAuthorBooks(int id)
+        public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetAuthorBooks(int id)
         {
             var author = await authorService.GetAuthorWithBooks(id);
 
@@ -69,7 +95,7 @@ namespace BookStore.WebAPI.Controllers
                 return NotFound();
             }
 
-            return Ok(author.Books);
+            return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(author.Books));
         }
 
         // PUT: api/Author/5
