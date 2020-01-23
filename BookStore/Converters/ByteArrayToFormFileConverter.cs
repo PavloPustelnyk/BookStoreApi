@@ -17,8 +17,10 @@ namespace BookStore.WebAPI.Converters
                 return null;
             }
 
-            using var ms = new MemoryStream(source);
-            return new FormFile(ms, 0, source.Length, "name", "fileName");
+            using (var ms = new MemoryStream(source))
+            {
+                return new FormFile(ms, 0, source.Length, "name", "fileName");
+            }
         }
     }
 }

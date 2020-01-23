@@ -17,9 +17,11 @@ namespace BookStore.WebAPI.Converters
                 return null;
             }
 
-            using var ms = new MemoryStream();
-            source.CopyTo(ms);
-            return ms.ToArray();
+            using (var ms = new MemoryStream())
+            {
+                source.CopyTo(ms);
+                return ms.ToArray();
+            }
         }
     }
 }
