@@ -18,7 +18,17 @@ namespace BookStore.Infrastructure.Services
 
         public async Task<Author> GetAuthorWithBooks(int id)
         {
-            return await dbContext.Authors.Include(a => a.Books).Where(a => a.Id == id).FirstOrDefaultAsync();
+            return await dbContext.Authors
+                .Include(a => a.Books)
+                .Where(a => a.Id == id)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<ICollection<Author>> GetAuthorsByPartialNameAsync(string partialName)
+        {
+            return await dbContext.Authors
+                .Where(a => EF.Functions.Like(a.FirstName + " " + a.LastName, $"%{partialName}%"))
+                .ToListAsync();
         }
     }
 }
