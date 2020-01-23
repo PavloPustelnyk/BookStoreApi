@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BookStore.Domain.Constants;
 using BookStore.Domain.Entities;
+using BookStore.Infrastructure.Helpers;
 using BookStore.Infrastructure.Services.Interfaces;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
@@ -46,7 +47,7 @@ namespace BookStore.WebAPI.Controllers
         [HttpPost("like-book")]
         public async Task<ActionResult<UserDetailedViewModel>> LikeBook(BaseViewModel bookId)
         {
-            var userId = GetCurrentUserId();
+            var userId = AuthHelper.GetUserId(User);
             var favoriteBook = new FavoriteBook
             {
                 UserId = userId,
@@ -68,7 +69,7 @@ namespace BookStore.WebAPI.Controllers
         [HttpPost("remove-book")]
         public async Task<ActionResult<UserDetailedViewModel>> RemoveBook(BaseViewModel bookId)
         {
-            var userId = GetCurrentUserId();
+            var userId = AuthHelper.GetUserId(User);
             var favoriteBook = new FavoriteBook
             {
                 UserId = userId,
@@ -89,7 +90,7 @@ namespace BookStore.WebAPI.Controllers
 
         private async Task<UserDetailedViewModel> GetCurrentUserAsync()
         {
-            var userId = GetCurrentUserId();
+            var userId = AuthHelper.GetUserId(User);
 
             var user = await userService.GetByIdAsync(userId);
 
@@ -103,11 +104,6 @@ namespace BookStore.WebAPI.Controllers
             userViewModel.LikedBooks = mapper.Map<ICollection<BookViewModel>>(favoriteBooks.Select(fb => fb.Book).ToArray());
 
             return userViewModel;
-        }
-
-        private int GetCurrentUserId()
-        {
-            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
         }
     }
 }
