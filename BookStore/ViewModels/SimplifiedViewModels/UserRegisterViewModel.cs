@@ -9,6 +9,7 @@ namespace BookStore.WebAPI.ViewModels.SimplifiedViewModels
     public class UserRegisterViewModel
     {
         [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
         [Required]
