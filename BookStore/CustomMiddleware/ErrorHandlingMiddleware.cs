@@ -43,6 +43,7 @@ namespace BookStore.WebAPI.CustomMiddleware
             {
                 statusCode = (int)HttpStatusCode.InternalServerError,
                 message = title + exception.Message,
+                details = exception.InnerException,
                 stacktrace = exception.StackTrace
             });
 
