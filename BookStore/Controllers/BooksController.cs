@@ -16,6 +16,7 @@ using BookStore.WebAPI.Constants;
 using Microsoft.Extensions.Logging;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
+using BookStore.Infrastructure.Helpers;
 
 namespace BookStore.WebAPI.Controllers
 {
@@ -42,6 +43,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Books/page/5
         [HttpGet("page/{pageNo}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "pageNo" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<IActionResult> GetBookPage(int pageNo)
         {
@@ -58,7 +62,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (books == null)
             {
-                return NotFound();
+                return NotFound($"Page with number '{pageNo}' is empty.");
             }
 
             var bookViewModels = mapper.Map<ICollection<BookDetailedViewModel>>(books);
@@ -74,6 +78,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Books/5
         [HttpGet("{id}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "id" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<BookDetailedViewModel>> GetBook(int id)
         {
@@ -87,7 +94,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (book == null)
             {
-                return NotFound();
+                return NotFound($"Book with id '{id}' does not exist.");
             }
 
             var bookViewModel = mapper.Map<BookDetailedViewModel>(book);
@@ -101,6 +108,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Books/search/str
         [HttpGet("search/{partialTitle}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "partialTitle" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetBookByPartialTitle(string partialTitle)
         {
@@ -119,6 +129,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Books/5/Categories
         [HttpGet("{id}/categories")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "id" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<IActionResult> GetBookGategories(int id)
         {
@@ -130,7 +143,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (categories == null)
             {
-                return NotFound();
+                return NotFound($"There are no categories for specified book id: {id}.");
             }
 
             return Ok(categories);
@@ -142,12 +155,12 @@ namespace BookStore.WebAPI.Controllers
         {
             if (id != bookViewModel.Id)
             {
-                return BadRequest();
+                return BadRequest($"Wrong book id: {id}");
             }
 
             if (!BookExists(id))
             {
-                return NotFound();
+                return NotFound($"Book with id '{id}' does not exist.");
             }
 
             try
@@ -160,7 +173,7 @@ namespace BookStore.WebAPI.Controllers
             {
                 if (!BookExists(id))
                 {
-                    return NotFound();
+                    return NotFound($"Book with id '{id}' does not exist.");
                 }
                 else
                 {
@@ -190,7 +203,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (book == null)
             {
-                return NotFound();
+                return NotFound($"Book with id '{id}' does not exist.");
             }
 
             await bookService.DeleteAsync(book);
@@ -198,7 +211,56 @@ namespace BookStore.WebAPI.Controllers
             return mapper.Map<BookDetailedViewModel>(book);
         }
 
+        // GET: api/Books/{id}/reviews
+        [HttpGet("{id}/reviews")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "id" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
+        [AllowAnonymous]
+        public async Task<ActionResult<ICollection<BookReviewViewModel>>> GetBookReviews(int id)
+        {
+            if (!BookExists(id))
+            {
+                return NotFound($"Book with id '{id}' does not exist.");
+            }
 
+            var reviews = await bookService.GetBookReviewsAsync(id);
+
+            return Ok(mapper.Map<ICollection<BookReviewViewModel>>(reviews));
+        }
+
+        // POST: api/Books/reviews
+        [HttpPost("reviews")]
+        [Authorize(Roles = UserRoles.AllUsersRole)]
+        public async Task<ActionResult<BookReviewViewModel>> PostReview([FromBody] BookReviewViewModel bookReviewViewModel)
+        {
+            if (!BookExists(bookReviewViewModel.BookId))
+            {
+                return NotFound($"Book with id '{bookReviewViewModel.BookId}' does not exist.");
+            }
+
+            var bookReview = mapper.Map<BookReview>(bookReviewViewModel);
+            bookReview.UserId = AuthHelper.GetUserId(User);
+
+            await bookService.AddBookReviewAsync(bookReview);
+
+            return Ok(mapper.Map<BookReviewViewModel>(bookReview));
+        }
+
+        // DELETE: api/Books/reviews
+        [HttpDelete("reviews")]
+        [Authorize(Roles = UserRoles.AllUsersRole)]
+        public async Task<ActionResult<BookReviewViewModel>> DeleteReview(int id)
+        {
+            var bookReview = await bookService.DeleteBookReviewAsync(id, AuthHelper.GetUserId(User));
+
+            if (bookReview == null)
+            {
+                return BadRequest($"Review with id '{id}' does not exist for authorized user.");
+            }
+
+            return mapper.Map<BookReviewViewModel>(bookReview);
+        }
 
         private bool BookExists(int id)
         {

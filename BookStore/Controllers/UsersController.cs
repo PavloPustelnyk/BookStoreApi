@@ -8,6 +8,7 @@ using BookStore.Domain.Constants;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Helpers;
 using BookStore.Infrastructure.Services.Interfaces;
+using BookStore.WebAPI.Constants;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -32,13 +33,16 @@ namespace BookStore.WebAPI.Controllers
         }
 
         [HttpGet("info")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByHeader = "Authorization",
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         public async Task<ActionResult<UserDetailedViewModel>> GetUserInfo()
         {
             var userViewModel = await GetCurrentUserAsync();
 
             if (userViewModel == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             return Ok(userViewModel);
@@ -60,13 +64,13 @@ namespace BookStore.WebAPI.Controllers
 
             if (userViewModel == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             return Ok(userViewModel);
         }
 
-        [HttpPost("remove-book")]
+        [HttpDelete("remove-book")]
         public async Task<ActionResult<UserDetailedViewModel>> RemoveBook(BaseViewModel bookId)
         {
             var userId = AuthHelper.GetUserId(User);
@@ -82,7 +86,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (userViewModel == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             return Ok(userViewModel);

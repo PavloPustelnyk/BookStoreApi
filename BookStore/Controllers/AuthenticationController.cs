@@ -34,8 +34,9 @@ namespace BookStore.WebAPI.Controllers
         }
 
 
-        [AllowAnonymous]
         [HttpPost("register")]
+        [ResponseCache(NoStore = true)]
+        [AllowAnonymous]
         public async Task<IActionResult> RegisterUserAsync([FromBody] UserRegisterViewModel userRegisterViewModel)
         {
             var user = mapper.Map<User>(userRegisterViewModel);
@@ -48,8 +49,9 @@ namespace BookStore.WebAPI.Controllers
             return Ok(mapper.Map<UserDetailedViewModel>(user));
         }
 
-        [AllowAnonymous]
         [HttpPost("login")]
+        [ResponseCache(NoStore = true)]
+        [AllowAnonymous]
         public async Task<IActionResult> LoginUserAsync([FromBody] UserLogintViewModel userLoginViewModel)
         {
             var user = await userService.GetUserByCredentialsAsync(userLoginViewModel.Email, userLoginViewModel.Password);
@@ -73,8 +75,9 @@ namespace BookStore.WebAPI.Controllers
             });
         }
 
-        [AllowAnonymous]
         [HttpPost("refresh")]
+        [ResponseCache(NoStore = true)]
+        [AllowAnonymous]
         public async Task<IActionResult> RefreshUserTokenAsync()
         {
             var refreshToken = User.FindFirst(x => x.Type == AuthHelper.RefreshToken)?.Value;

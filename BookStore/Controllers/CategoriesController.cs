@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Services.Interfaces;
+using BookStore.WebAPI.Constants;
 using BookStore.WebAPI.ViewModels;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
@@ -36,15 +37,21 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Categories
         [HttpGet]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryViewModel>>> GetCategories()
         {
             var categories = await categoryService.GetAllAsync();
+
             return Ok(mapper.Map<IEnumerable<CategoryViewModel>>(categories));
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "id" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<CategoryViewModel>> GetCategory(int id)
         {
@@ -52,7 +59,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (category == null)
             {
-                return NotFound();
+                return NotFound($"Category with id '{id}' does not exist.");
             }
 
             return mapper.Map<CategoryViewModel>(category);
@@ -60,6 +67,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Categories/5/Books
         [HttpGet("{id}/books")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "id" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetCategoryBooks(int id)
         {
@@ -72,7 +82,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (books == null)
             {
-                return NotFound();
+                return NotFound($"Category with id '{id}' does not exist.");
             }
 
             return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(books));
@@ -84,7 +94,7 @@ namespace BookStore.WebAPI.Controllers
         {
             if (id != categoryViewModel.Id)
             {
-                return BadRequest();
+                return BadRequest($"Wrong category id: {id}");
             }
 
             try
@@ -97,7 +107,7 @@ namespace BookStore.WebAPI.Controllers
             {
                 if (!CategoryExists(id))
                 {
-                    return NotFound();
+                    return NotFound($"Category with id '{id}' does not exist.");
                 }
                 else
                 {
@@ -127,7 +137,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (category == null)
             {
-                return NotFound();
+                return NotFound($"Category with id '{id}' does not exist.");
             }
 
             await categoryService.DeleteAsync(category);

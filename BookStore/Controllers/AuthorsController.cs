@@ -36,6 +36,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Author/5
         [HttpGet("{id}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any, 
+            VaryByQueryKeys = new[] { "id" }, 
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<AuthorDetailedViewModel>> GetAuthor(int id)
         {
@@ -43,7 +46,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (author == null)
             {
-                return NotFound();
+                return NotFound($"Author with id '{id}' does not exist.");
             }
 
             return Ok(mapper.Map<AuthorDetailedViewModel>(author));
@@ -51,6 +54,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Author/search/str
         [HttpGet("search/{partialName}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "partialName" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<ICollection<AuthorDetailedViewModel>>> GetAuthorByPartialName(string partialName)
         {
@@ -61,12 +67,15 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Authors/page/5
         [HttpGet("page/{pageNo}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "pageNo" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<IActionResult> GetAuthorsPage(int pageNo)
         {
             if (pageNo < 1)
             {
-                return BadRequest("Wrong page number.");
+                return BadRequest("Page number must be greater then 0.");
             }
 
             var authors = await authorService.GetAll()
@@ -77,7 +86,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (authors == null)
             {
-                return NotFound();
+                return NotFound($"Page with number '{pageNo}' is empty.");
             }
 
             return Ok(mapper.Map<ICollection<AuthorDetailedViewModel>>(authors));
@@ -85,6 +94,9 @@ namespace BookStore.WebAPI.Controllers
 
         // GET: api/Authors/5/Books
         [HttpGet("{id}/books")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "id" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
         public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetAuthorBooks(int id)
         {
@@ -92,7 +104,7 @@ namespace BookStore.WebAPI.Controllers
 
             if (author == null)
             {
-                return NotFound();
+                return NotFound($"Author with id '{id}' does not exist.");
             }
 
             return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(author.Books));
@@ -104,7 +116,7 @@ namespace BookStore.WebAPI.Controllers
         {
             if (id != authorViewModel.Id)
             {
-                return BadRequest();
+                return BadRequest($"Wrong author id: {id}");
             }
 
             try
@@ -117,7 +129,7 @@ namespace BookStore.WebAPI.Controllers
             {
                 if (!AuthorExists(id))
                 {
-                    return NotFound();
+                    return NotFound($"Author with id '{id}' does not exist.");
                 }
                 else
                 {
@@ -146,7 +158,7 @@ namespace BookStore.WebAPI.Controllers
             var author = await authorService.GetByIdAsync(id);
             if (author == null)
             {
-                return NotFound();
+                return NotFound($"Author with id '{id}' does not exist.");
             }
 
             await authorService.DeleteAsync(author);
