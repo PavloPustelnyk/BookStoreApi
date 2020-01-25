@@ -8,5 +8,7 @@ namespace BookStore.WebAPI.Constants
     public class ControllersConstants
     {
         public const int ItemsOnPageCount = 30;
+
+        public const int CommonResponseCachingDuration = 60;
     }
 }
