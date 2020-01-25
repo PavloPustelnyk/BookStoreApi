@@ -17,6 +17,10 @@ namespace BookStore.WebAPI.ViewModels.DetailedViewModels
 
         public decimal Price { get; set; }
 
+        public int ReviewCount { get; set; }
+
+        public int SummaryRating { get; set; }
+
         public IFormFile BookImage { get; set; }
 
         public string Description { get; set; }
