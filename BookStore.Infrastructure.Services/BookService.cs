@@ -77,7 +77,7 @@ namespace BookStore.Infrastructure.Services
                 .AnyAsync(r => r.UserId == review.UserId && r.BookId == review.BookId);
         }
 
-        public async Task<BookReview> AddBookReviewAsync(BookReview review)
+        public async Task<BookReview> CreateBookReviewAsync(BookReview review)
         {
             using (var transaction = await dbContext.Database.BeginTransactionAsync())
             {

@@ -18,7 +18,7 @@ namespace BookStore.Infrastructure.Services.Interfaces
 
         Task<bool> ReviewExistsAsync(BookReview review);
 
-        Task<BookReview> AddBookReviewAsync(BookReview review);
+        Task<BookReview> CreateBookReviewAsync(BookReview review);
 
         Task<ICollection<BookReview>> GetBookReviewsAsync(int bookId);
 

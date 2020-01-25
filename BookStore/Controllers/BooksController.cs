@@ -242,7 +242,7 @@ namespace BookStore.WebAPI.Controllers
             var bookReview = mapper.Map<BookReview>(bookReviewViewModel);
             bookReview.UserId = AuthHelper.GetUserId(User);
 
-            await bookService.AddBookReviewAsync(bookReview);
+            await bookService.CreateBookReviewAsync(bookReview);
 
             return Ok(mapper.Map<BookReviewViewModel>(bookReview));
         }
