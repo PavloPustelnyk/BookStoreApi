@@ -46,6 +46,8 @@ namespace BookStore.WebAPI
 
             services.AddControllers();
 
+            services.AddResponseCaching();
+
             services.ConfigureAuthentication(Configuration);
 
             services.ConfigureCors();
@@ -79,6 +81,8 @@ namespace BookStore.WebAPI
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.UseResponseCaching();
 
             app.UseMiddleware<ErrorHandlingMiddleware>();
 
