@@ -15,6 +15,7 @@ namespace BookStore.Domain.Entities
         public int BookId { get; set; }
 
         [Required]
+        [Range(0, 5)]
         public int Rating { get; set; }
 
         [StringLength(DbColumnConstraints.BookCommentLength)]
