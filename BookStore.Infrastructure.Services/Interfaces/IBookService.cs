@@ -15,5 +15,13 @@ namespace BookStore.Infrastructure.Services.Interfaces
         Task CreateBookWithCategoriesAsync(Book book, int[] categoriesId);
 
         Task<ICollection<Book>> GetBooksByPartialTitleAsync(string partialTitle);
+
+        Task<bool> ReviewExistsAsync(BookReview review);
+
+        Task<BookReview> AddBookReviewAsync(BookReview review);
+
+        Task<ICollection<BookReview>> GetBookReviewsAsync(int bookId);
+
+        Task<BookReview> DeleteBookReviewAsync(int reviewId, int userId);
     }
 }

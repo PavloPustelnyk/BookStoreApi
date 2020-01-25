@@ -71,6 +71,74 @@ namespace BookStore.Infrastructure.Services
             }
         }
 
+        public async Task<bool> ReviewExistsAsync(BookReview review)
+        {
+            return await dbContext.Reviews
+                .AnyAsync(r => r.UserId == review.UserId && r.BookId == review.BookId);
+        }
+
+        public async Task<BookReview> AddBookReviewAsync(BookReview review)
+        {
+            using (var transaction = await dbContext.Database.BeginTransactionAsync())
+            {
+                await dbContext.Reviews.AddAsync(review);
+                var book = await dbContext.Books
+                    .FirstOrDefaultAsync(b => b.Id == review.BookId);
+
+                ++book.ReviewCount;
+                book.SummaryRating += review.Rating;
+
+                dbContext.Books.Update(book);
+
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return review;
+            }
+        }
+
+        public async Task<ICollection<BookReview>> GetBookReviewsAsync(int bookId)
+        {
+            return await dbContext.Reviews
+                .Where(r => r.BookId == bookId)
+                .ToListAsync();
+        }
+
+        public async Task<BookReview> DeleteBookReviewAsync(int reviewId, int userId)
+        {
+            using (var transaction = await dbContext.Database.BeginTransactionAsync())
+            {
+                var review = await dbContext.Reviews
+                    .FirstOrDefaultAsync(r => r.Id == reviewId && r.UserId == userId);
+
+                if (review == null)
+                {
+                    await transaction.RollbackAsync();
+                    return null;
+                }
+
+                var book = await dbContext.Books
+                    .FirstOrDefaultAsync(b => b.Id == review.BookId);
+
+                if (book == null)
+                {
+                    await transaction.RollbackAsync();
+                    return null;
+                }
+
+                book.ReviewCount -= 1;
+                book.SummaryRating -= review.Rating;
+
+                dbContext.Books.Update(book);
+                dbContext.Reviews.Remove(review);
+
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return review;
+            }
+        }
+
         private void AddBookCategories(int bookId, int[] categoriesId)
         {
             var categories = categoriesId.Select(i => new BookCategory { BookId = bookId, CategoryId = i });
