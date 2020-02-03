@@ -1,7 +1,6 @@
 ﻿using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Helpers;
 using BookStore.Infrastructure.Services.Interfaces;
-using CryptoHelper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -10,7 +9,6 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BookStore.Infrastructure.Services

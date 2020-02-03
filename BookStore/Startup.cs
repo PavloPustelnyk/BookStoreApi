@@ -1,29 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
 using BookStore.Infrastructure.ApiContext;
-using BookStore.WebAPI.MappingProfiles;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using BookStore.Infrastructure.Helpers;
-using BookStore.Infrastructure.Services.Interfaces;
-using BookStore.Infrastructure.Services;
-using Microsoft.OpenApi.Models;
 using BookStore.WebAPI.CustomMiddleware;
-using Serilog.Extensions.Logging;
 
 namespace BookStore.WebAPI
 {
@@ -50,7 +33,7 @@ namespace BookStore.WebAPI
 
             services.ConfigureAuthentication(Configuration);
 
-            services.ConfigureCors();
+            services.ConfigureCors(Configuration);
 
             services.ConfigureSwagger();
 
@@ -73,6 +56,8 @@ namespace BookStore.WebAPI
             }
 
             loggerFactory.AddFile("Logs/log-{Date}.txt");
+
+            app.UseCors("BookStorePolicy");
 
             app.UseHttpsRedirection();
 

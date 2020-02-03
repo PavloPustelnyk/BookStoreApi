@@ -1,15 +1,9 @@
 ﻿using AutoMapper;
 using BookStore.Domain.Entities;
 using BookStore.WebAPI.Converters;
-using BookStore.WebAPI.ViewModels;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BookStore.WebAPI.MappingProfiles
 {

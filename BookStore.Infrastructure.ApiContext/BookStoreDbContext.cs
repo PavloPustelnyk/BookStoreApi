@@ -1,6 +1,5 @@
 ﻿using BookStore.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace BookStore.Infrastructure.ApiContext
 {

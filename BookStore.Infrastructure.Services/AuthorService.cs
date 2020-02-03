@@ -2,10 +2,8 @@
 using BookStore.Infrastructure.ApiContext;
 using BookStore.Infrastructure.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BookStore.Infrastructure.Services

@@ -1,10 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BookStore.WebAPI.Converters
 {
@@ -14,7 +10,7 @@ namespace BookStore.WebAPI.Converters
         {
             if (source == null || source.Length == 0)
             {
-                return null;
+                return new byte[0];
             }
 
             using (var ms = new MemoryStream())
