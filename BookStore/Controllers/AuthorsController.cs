@@ -7,14 +7,11 @@ using BookStore.Domain.Constants;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Services.Interfaces;
 using BookStore.WebAPI.Constants;
-using BookStore.WebAPI.ViewModels;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace BookStore.WebAPI.Controllers
 {
@@ -25,13 +22,11 @@ namespace BookStore.WebAPI.Controllers
     {
         private readonly IAuthorService authorService;
         private readonly IMapper mapper;
-        private readonly ILogger<AuthorsController> logger;
 
-        public AuthorsController(IAuthorService authorService, IMapper mapper, ILogger<AuthorsController> logger)
+        public AuthorsController(IAuthorService authorService, IMapper mapper)
         {
             this.authorService = authorService;
             this.mapper = mapper;
-            this.logger = logger;
         }
 
         // GET: api/Author/5
@@ -110,6 +105,17 @@ namespace BookStore.WebAPI.Controllers
             return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(author.Books));
         }
 
+        [HttpGet("pages")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
+        [AllowAnonymous]
+        public async Task<ActionResult<int>> GetPagesCount()
+        {
+            int authorCount = await authorService.GetAll().CountAsync();
+
+            return Ok(Math.Ceiling((double)authorCount / ControllersConstants.ItemsOnPageCount));
+        }
+
         // PUT: api/Author/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAuthor(int id, [FromBody] AuthorViewModel authorViewModel)
@@ -156,6 +162,7 @@ namespace BookStore.WebAPI.Controllers
         public async Task<ActionResult<AuthorDetailedViewModel>> DeleteAuthor(int id)
         {
             var author = await authorService.GetByIdAsync(id);
+
             if (author == null)
             {
                 return NotFound($"Author with id '{id}' does not exist.");
