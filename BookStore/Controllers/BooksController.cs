@@ -2,18 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookStore.Domain.Entities;
-using BookStore.Infrastructure.ApiContext;
 using BookStore.Infrastructure.Services.Interfaces;
 using AutoMapper;
-using BookStore.WebAPI.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using BookStore.Domain.Constants;
 using BookStore.WebAPI.Constants;
-using Microsoft.Extensions.Logging;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using BookStore.Infrastructure.Helpers;
@@ -26,19 +22,14 @@ namespace BookStore.WebAPI.Controllers
     public class BooksController : ControllerBase
     {
         private readonly IBookService bookService;
-        private readonly IAuthorService authorService;
         private readonly IBookCategoryService bookCategoryService;
         private readonly IMapper mapper;
-        private readonly ILogger<BooksController> logger;
 
-        public BooksController(IBookService bookService, IAuthorService authorService,
-            IBookCategoryService bookCategoryService, IMapper mapper, ILogger<BooksController> logger)
+        public BooksController(IBookService bookService, IBookCategoryService bookCategoryService, IMapper mapper)
         {
             this.bookService = bookService;
-            this.authorService = authorService;
             this.bookCategoryService = bookCategoryService;
             this.mapper = mapper;
-            this.logger = logger;
         }
 
         // GET: api/Books/page/5
@@ -47,7 +38,7 @@ namespace BookStore.WebAPI.Controllers
             VaryByQueryKeys = new[] { "pageNo" },
             Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
-        public async Task<IActionResult> GetBookPage(int pageNo)
+        public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetBookPage(int pageNo)
         {
             if (pageNo < 1)
             {
@@ -147,6 +138,17 @@ namespace BookStore.WebAPI.Controllers
             }
 
             return Ok(categories);
+        }
+
+        [HttpGet("pages")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
+        [AllowAnonymous]
+        public async Task<ActionResult<int>> GetPagesCount()
+        {
+            int booksCount = await bookService.GetAll().CountAsync();
+
+            return Ok(Math.Ceiling((double)booksCount / ControllersConstants.ItemsOnPageCount));
         }
 
         // PUT: api/Books/5
