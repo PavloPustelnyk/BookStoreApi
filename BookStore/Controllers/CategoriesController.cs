@@ -6,14 +6,11 @@ using AutoMapper;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Services.Interfaces;
 using BookStore.WebAPI.Constants;
-using BookStore.WebAPI.ViewModels;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace BookStore.WebAPI.Controllers
 {
@@ -24,15 +21,13 @@ namespace BookStore.WebAPI.Controllers
         private readonly ICategoryService categoryService;
         private readonly IBookCategoryService bookCategoryService;
         private readonly IMapper mapper;
-        private readonly ILogger<CategoriesController> logger;
 
         public CategoriesController(ICategoryService categoryService, IBookCategoryService bookCategoryService, 
-            IMapper mapper, ILogger<CategoriesController> logger)
+            IMapper mapper)
         {
             this.categoryService = categoryService;
             this.bookCategoryService = bookCategoryService;
             this.mapper = mapper;
-            this.logger = logger;
         }
 
         // GET: api/Categories
@@ -65,16 +60,23 @@ namespace BookStore.WebAPI.Controllers
             return mapper.Map<CategoryViewModel>(category);
         }
 
-        // GET: api/Categories/5/Books
-        [HttpGet("{id}/books")]
+        // GET: api/Categories/5/Books/page/1
+        [HttpGet("{id}/books/page/{pageNo}")]
         [ResponseCache(Location = ResponseCacheLocation.Any,
-            VaryByQueryKeys = new[] { "id" },
+            VaryByQueryKeys = new[] { "id", "pageNo" },
             Duration = ControllersConstants.CommonResponseCachingDuration)]
         [AllowAnonymous]
-        public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetCategoryBooks(int id)
+        public async Task<ActionResult<ICollection<BookDetailedViewModel>>> GetCategoryBooks(int id, int pageNo)
         {
+            if (pageNo < 1)
+            {
+                return BadRequest("Wrong page number.");
+            }
+
             var books = await bookCategoryService.GetAll()
                 .Where(bc => bc.CategoryId == id)
+                .Skip((pageNo - 1) * ControllersConstants.ItemsOnPageCount)
+                .Take(ControllersConstants.ItemsOnPageCount)
                 .Include(bc => bc.Book)
                 .ThenInclude(b => b.Author)
                 .Select(bc => bc.Book)
@@ -82,10 +84,33 @@ namespace BookStore.WebAPI.Controllers
 
             if (books == null)
             {
-                return NotFound($"Category with id '{id}' does not exist.");
+                return NotFound($"Page with number '{pageNo}' is empty.");
             }
 
-            return Ok(mapper.Map<ICollection<BookDetailedViewModel>>(books));
+            var bookViewModels = mapper.Map<ICollection<BookDetailedViewModel>>(books);
+
+            foreach (var bookViewModel in bookViewModels)
+            {
+                var categories = await bookCategoryService.GetCategoriesAsync(bookViewModel.Id);
+                bookViewModel.Categories = mapper.Map<ICollection<CategoryViewModel>>(categories);
+            }
+
+            return Ok(bookViewModels);
+        }
+
+        // GET: api/Categories/5/Books/pages
+        [HttpGet("{id}/books/pages")]
+        [ResponseCache(Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "id" },
+            Duration = ControllersConstants.CommonResponseCachingDuration)]
+        [AllowAnonymous]
+        public async Task<ActionResult<int>> GetPagesCount(int id)
+        {
+            int booksCount = await bookCategoryService.GetAll()
+                .Where(bc => bc.CategoryId == id)
+                .CountAsync();
+
+            return Ok(Math.Ceiling((double)booksCount / ControllersConstants.ItemsOnPageCount));
         }
 
         // PUT: api/Categories/5
