@@ -1,8 +1,6 @@
 ﻿using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BookStore.WebAPI.ViewModels.DetailedViewModels
 {
@@ -13,6 +11,8 @@ namespace BookStore.WebAPI.ViewModels.DetailedViewModels
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
+
+        public string Role { get; set; }
 
         public DateTime BirthDate { get; set; }
 
