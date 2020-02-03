@@ -6,4 +6,4 @@ Solution is based on Onion Architecture with layers:
 * [BookStore.API](https://github.com/PavloPustelnyk/BookStoreApi/tree/master/BookStore) - Outer API layer with controllers.
 
 Unit Test Projects:
-* [BookStore.API](https://github.com/PavloPustelnyk/BookStoreApi/tree/master/BookStore.Tests) - NUnit test project with services tests.
+* [BookStore.Tests](https://github.com/PavloPustelnyk/BookStoreApi/tree/master/BookStore.Tests) - NUnit test project with services tests.
