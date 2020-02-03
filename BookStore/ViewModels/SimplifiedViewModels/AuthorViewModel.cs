@@ -1,10 +1,5 @@
-﻿using BookStore.Domain.Entities;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BookStore.WebAPI.ViewModels.SimplifiedViewModels
 {
@@ -19,7 +14,7 @@ namespace BookStore.WebAPI.ViewModels.SimplifiedViewModels
         [Required]
         public DateTime BirthDate { get; set; }
 
-        public IFormFile AuthorImage { get; set; }
+        public string AuthorImage { get; set; }
 
         public string Description { get; set; }
     }

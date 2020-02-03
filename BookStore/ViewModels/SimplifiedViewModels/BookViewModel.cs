@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BookStore.WebAPI.ViewModels.SimplifiedViewModels
 {
@@ -20,7 +15,7 @@ namespace BookStore.WebAPI.ViewModels.SimplifiedViewModels
 
         public int[] CategoriesId { get; set; } 
 
-        public IFormFile BookImage { get; set; }
+        public string BookImage { get; set; }
 
         public string Description { get; set; }
     }
