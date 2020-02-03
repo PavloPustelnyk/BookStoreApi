@@ -1,16 +1,14 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoMapper;
 using BookStore.Domain.Constants;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Helpers;
 using BookStore.Infrastructure.Services.Interfaces;
-using BookStore.WebAPI.ViewModels;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace BookStore.WebAPI.Controllers
@@ -39,14 +37,23 @@ namespace BookStore.WebAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RegisterUserAsync([FromBody] UserRegisterViewModel userRegisterViewModel)
         {
-            var user = mapper.Map<User>(userRegisterViewModel);
-            user.Role = UserRoles.UserRole;
+            try
+            {
+                var user = mapper.Map<User>(userRegisterViewModel);
+                user.Role = UserRoles.UserRole;
 
-            await userService.CreateAsync(user);
+                await userService.CreateAsync(user);
 
-            logger.LogInformation($"User register. Id: {user.Id}");
+                logger.LogInformation($"User register. Id: {user.Id}");
 
-            return Ok(mapper.Map<UserDetailedViewModel>(user));
+                return Ok(mapper.Map<UserDetailedViewModel>(user));
+            }
+            catch(DbUpdateException exc)
+            {
+                logger.LogError(exc, exc.Message);
+
+                return BadRequest("User with specified email already exists.");
+            }
         }
 
         [HttpPost("login")]
@@ -61,6 +68,7 @@ namespace BookStore.WebAPI.Controllers
                 var message = "Invalid user`s login or password.";
 
                 logger.LogInformation(message);
+                
                 return BadRequest(message);
             }
 
