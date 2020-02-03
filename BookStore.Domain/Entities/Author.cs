@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace BookStore.Domain.Entities
 {
@@ -22,7 +21,7 @@ namespace BookStore.Domain.Entities
         public DateTime BirthDate { get; set; }
 
         [MaxLength(DbColumnConstraints.ImageSize)]
-        public byte[] AuthorImage { get; set; }
+        public string AuthorImage { get; set; }
 
         [StringLength(DbColumnConstraints.DescriptionLength)]
         public string Description { get; set; }
