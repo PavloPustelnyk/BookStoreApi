@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using BookStore.Domain.Constants;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Helpers;
 using BookStore.Infrastructure.Services.Interfaces;
-using BookStore.WebAPI.Constants;
 using BookStore.WebAPI.ViewModels.DetailedViewModels;
 using BookStore.WebAPI.ViewModels.SimplifiedViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.WebAPI.Controllers
 {
@@ -33,9 +28,6 @@ namespace BookStore.WebAPI.Controllers
         }
 
         [HttpGet("info")]
-        [ResponseCache(Location = ResponseCacheLocation.Any,
-            VaryByHeader = "Authorization",
-            Duration = ControllersConstants.CommonResponseCachingDuration)]
         public async Task<ActionResult<UserDetailedViewModel>> GetUserInfo()
         {
             var userViewModel = await GetCurrentUserAsync();
@@ -46,6 +38,19 @@ namespace BookStore.WebAPI.Controllers
             }
 
             return Ok(userViewModel);
+        }
+
+        [HttpGet("info/liked-books")]
+        public async Task<ActionResult<ICollection<BookViewModel>>> GetLikedBooks()
+        {
+            var userViewModel = await GetCurrentUserAsync();
+
+            if (userViewModel == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(userViewModel.LikedBooks);
         }
 
         [HttpPost("like-book")]
@@ -104,7 +109,9 @@ namespace BookStore.WebAPI.Controllers
             }
 
             var userViewModel = mapper.Map<UserDetailedViewModel>(user);
+
             var favoriteBooks = await userService.GetUserFavoriteBooksAsync(userId);
+
             userViewModel.LikedBooks = mapper.Map<ICollection<BookViewModel>>(favoriteBooks.Select(fb => fb.Book).ToArray());
 
             return userViewModel;
